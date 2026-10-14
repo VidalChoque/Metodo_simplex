@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Método simplex</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<nav>
+  <div class="barra">
+    <span class="marca">Método simplex</span>
+    <ul>
+      <li><a href="#introduccion">Introducción</a></li>
+      <li><a href="#programacion-lineal">Programación lineal</a></li>
+      <li><a href="#geometria">Geometría</a></li>
+      <li><a href="#algoritmo">Algoritmo</a></li>
+      <li><a href="#casos">Casos especiales</a></li>
+      <li><a href="#inicial">Solución inicial</a></li>
+      <li><a href="#dualidad">Dualidad</a></li>
+      <li><a href="#aplicaciones">Aplicaciones</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+
+  <!-- introducción -->
+  <section id="introduccion">
+    <div class="dos">
+      <div>
+        <h1>MÉTODO SIMPLEX</h1>
+        <p>El simplex fue creado por George Dantzig en 1947.</p>
+        <p>En esa época "programación" no tenía que ver con computadoras, sino con planificar, con hacer calendarios y planes.</p>
+        <p>El nombre "programación lineal" lo propuso Koopmans en 1948.</p>
+        <p><strong>Objetivo:</strong> entender el modelo, la idea geométrica, el algoritmo paso a paso, los casos especiales, y cómo se usa en computación y en ciencia de datos.</p>
+      </div>
+      <figure class="foto">
+        <div class="marco"><img src="dantzig.jpg" alt="George Dantzig" onerror="this.remove()"></div>
+        <figcaption>George Dantzig</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- programación lineal -->
+  <section id="programacion-lineal">
+    <h2>Programación lineal</h2>
+    <div class="dos fig">
+      <div>
+        <h3 class="primero">Un problema de programación lineal tiene</h3>
+        <ul>
+          <li>las variables de decisión   </li>
+          <li>la función objetivo</li>
+          <li>las restricciones</li>
+          <li>la no negatividad</li>
+        </ul>
+
+        <h3>Forma estándar de un problema de programación lineal</h3>
+        <div class="formula">max z = c<sup>T</sup>x &nbsp;&nbsp; <span>s.a.</span> &nbsp;&nbsp; Ax ≤ b, &nbsp; x ≥ 0</div>
+        <p>Donde: <strong>c</strong> es la ganancia de cada variable, <strong>A</strong> es cuánto consume cada una de los recursos, y <strong>b</strong> es cuánto tenemos disponible de cada recurso.</p>
+
+        <h3>El simplex trabaja con la forma estándar</h3>
+        <div class="formula">Ax = b, &nbsp; x ≥ 0</div>
+        <p>Variables extra: variable de holgura, exceso y las artificiales.</p>
+      </div>
+
+      <div class="fig-caja">
+        <p><strong>Ejemplo que usamos en los gráficos</strong></p>
+        <div class="formula suelta">
+          max z = 3x₁ + 5x₂<br>
+          x₁ ≤ 4<br>
+          2x₂ ≤ 12<br>
+          3x₁ + 2x₂ ≤ 18<br>
+          x₁, x₂ ≥ 0
+        </div>
+        <p class="pie-fig" style="margin-bottom:12px">Recursos usados en la solución óptima (x₁ = 2, x₂ = 6):</p>
+        <div id="recursos"></div>
+        <p class="pie-fig">Al primer recurso le sobran 2 unidades: esa es su variable de holgura.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- fundamentos matemáticos y geometría -->
+  <section id="geometria">
+    <h2>Fundamentos matemáticos y geometría</h2>
+    <div class="dos fig">
+      <div>
+        <h3 class="primero">Conjunto factible</h3>
+        <div class="formula">F = { x : Ax = b, &nbsp; x ≥ 0 }</div>
+        <p>"El conjunto de todos los puntos x que cumplen las restricciones".</p>
+
+        <h3>Teorema fundamental de la programación lineal</h3>
+        <p>Si existe una solución óptima, hay al menos un vértice que es óptimo.</p>
+
+        <h3>¿Cómo trabajamos con esas esquinas en la computadora?</h3>
+        <p>Con matrices. Elegimos m columnas de A que forman la base B, y ponemos las otras variables en cero:</p>
+        <div class="formula">x<sub>B</sub> = B<sup>−1</sup>b, &nbsp; x<sub>N</sub> = 0</div>
+        <p><strong>Dato clave:</strong> cada vértice del dibujo es una solución básica factible del álgebra.</p>
+      </div>
+
+      <div class="fig-caja">
+        <svg id="plano-region" role="img" aria-label="Región factible del ejemplo con sus vértices y una recta de la función objetivo"></svg>
+        <div class="controles">
+          <label for="deslizador-z">Valor de z</label>
+          <input id="deslizador-z" type="range" min="0" max="45" step="1" value="18">
+          <span id="valor-z" style="min-width:3ch"></span>
+        </div>
+        <p class="lectura" id="lectura-z"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- algoritmo simplex -->
+  <section id="algoritmo">
+    <h2>El algoritmo simplex</h2>
+    <p class="destacado">Idea central: caminar de esquina en esquina, mejorando cada vez, hasta que no se pueda mejorar más.</p>
+    <p>Empezamos en un vértice. Cada movimiento intercambia una variable: una entra a la base y otra sale. Hay tres preguntas:</p>
+
+    <div class="dos fig sep">
+      <ol>
+        <li><strong>¿Ya llegamos al óptimo?</strong> Usamos los costos reducidos.
+          <div class="formula" style="margin-top:8px">z<sub>j</sub> − c<sub>j</sub> = (c<sub>B</sub>)<sup>T</sup> B<sup>−1</sup> a<sub>j</sub> − c<sub>j</sub></div>
+        </li>
+        <li><strong>¿Cuál variable entra?</strong> La que tenga el costo reducido más negativo.</li>
+        <li><strong>¿Cuál sale?</strong> Se calcula con la razón mínima:
+          <div class="formula" style="margin-top:8px">θ* = min { (B<sup>−1</sup>b)<sub>i</sub> / d<sub>i</sub> &nbsp; : &nbsp; d<sub>i</sub> &gt; 0 }</div>
+        </li>
+      </ol>
+      <div>
+        <p>Todo esto se organiza en la <strong>tabla simplex</strong>, y el cambio de base se hace con el <strong>pivoteo</strong>, que es eliminación de Gauss-Jordan:</p>
+        <div class="formula">fila<sub>r</sub> ← fila<sub>r</sub> / a<sub>rq</sub> <br> fila<sub>i</sub> ← fila<sub>i</sub> − a<sub>iq</sub> · fila<sub>r</sub></div>
+      </div>
+    </div>
+
+    <h3 class="primero">El ejemplo paso a paso</h3>
+    <div class="dos fig">
+      <div>
+        <div class="tabla-caja" id="tabla-simplex"></div>
+        <div class="controles">
+          <button id="btn-atras">Anterior</button>
+          <button id="btn-sigue">Siguiente</button>
+          <button id="btn-reinicio">Reiniciar</button>
+        </div>
+        <p class="lectura" id="lectura-paso"></p>
+        <p class="pie-fig">Columna sombreada: la variable que entra. Fila en color: la que sale. Celda naranja: el pivote.</p>
+      </div>
+      <div class="fig-caja">
+        <svg id="plano-ruta" role="img" aria-label="Recorrido del simplex por los vértices de la región factible"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- casos especiales -->
+  <section id="casos">
+    <h2>Casos especiales</h2>
+    <div class="tres">
+      <div>
+        <div class="fig-caja" style="margin-bottom:16px">
+          <svg viewBox="0 0 200 170" role="img" aria-label="Tres restricciones que se cruzan en un mismo vértice">
+            <line x1="30" y1="140" x2="190" y2="140" class="eje"/>
+            <line x1="30" y1="140" x2="30" y2="10" class="eje"/>
+            <polygon points="30,140 130,140 130,40 30,40" class="reg"/>
+            <line x1="130" y1="140" x2="130" y2="20" class="res"/>
+            <line x1="30" y1="40" x2="190" y2="40" class="res"/>
+            <line x1="50" y1="140" x2="170" y2="20" class="res"/>
+            <circle cx="130" cy="40" r="6" class="opt"/>
+            <text x="138" y="62" class="etq-s">un vértice, tres</text>
+            <text x="138" y="76" class="etq-s">restricciones</text>
+          </svg>
+        </div>
+        <h3 class="primero">Degeneración</h3>
+        <p>Empate en la razón mínima y una variable básica vale cero. El método puede avanzar sin mejorar, y en casos raros ciclar. Se evita con la regla de Bland.</p>
+      </div>
+
+      <div>
+        <div class="fig-caja" style="margin-bottom:16px">
+          <svg viewBox="0 0 200 170" role="img" aria-label="Región abierta donde z crece sin límite">
+            <line x1="30" y1="140" x2="190" y2="140" class="eje"/>
+            <line x1="30" y1="140" x2="30" y2="10" class="eje"/>
+            <polygon points="60,110 190,110 190,10 60,10" class="reg"/>
+            <line x1="100" y1="90" x2="160" y2="30" stroke="#e0652f" stroke-width="2.5"/>
+            <polygon points="160,30 148,32 158,42" fill="#e0652f"/>
+            <text x="70" y="130" class="etq-s">z crece sin límite</text>
+          </svg>
+        </div>
+        <h3 class="primero">No acotado</h3>
+        <p>Si en la columna que entra no hay ningún número positivo, la variable crece sin límite y la ganancia se va al infinito.</p>
+      </div>
+
+      <div>
+        <div class="fig-caja" style="margin-bottom:16px">
+          <svg viewBox="0 0 200 170" role="img" aria-label="Dos regiones separadas sin puntos en común">
+            <line x1="30" y1="140" x2="190" y2="140" class="eje"/>
+            <line x1="30" y1="140" x2="30" y2="10" class="eje"/>
+            <polygon points="30,140 90,140 30,80" class="reg"/>
+            <polygon points="190,20 190,80 130,20" class="vacio"/>
+            <text x="48" y="128" class="etq-s">x₁ + x₂ ≤ 2</text>
+            <text x="112" y="62" class="etq-s">x₁ + x₂ ≥ 5</text>
+            <text x="60" y="160" class="etq-s">no hay punto en común</text>
+          </svg>
+        </div>
+        <h3 class="primero">Infactible</h3>
+        <p>Cuando ninguna solución cumple todas las restricciones a la vez. No existe región factible.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- soluciones iniciales -->
+  <section id="inicial">
+    <h2>Soluciones iniciales: Dos fases y M grande</h2>
+    <div class="dos fig sep">
+      <div>
+        <h3>Dos fases</h3>
+        <div class="dos igual" style="gap:28px">
+          <div>
+            <p><strong>Fase 1.</strong> Minimizamos la suma de las artificiales:</p>
+            <div class="formula">min w = Σ a<sub>i</sub></div>
+            <p>Si llega a cero, encontramos un punto de partida válido.</p>
+          </div>
+          <div>
+            <p><strong>Fase 2.</strong> Resolvemos el problema original.</p>
+            <p>Si la fase 1 no llega a cero, el problema es infactible.</p>
+          </div>
+        </div>
+        <h3 class="primero">M grande</h3>
+        <p>Se les pone un castigo enorme en la función objetivo.</p>
+        <div class="formula">max z = c<sup>T</sup>x − M Σ a<sub>i</sub></div>
+        <p>Con M gigante, al método no le conviene dejarlas, y las saca.</p>
+
+        
+      </div>
+
+      <div class="fig-caja">
+        <div class="flujo">
+          <div class="caja fase">Fase 1: min w = Σ aᵢ</div>
+          <span class="flecha">▼</span>
+          <div class="caja decision">¿w llega a cero?</div>
+          <div class="ramas">
+            <div>
+              <span class="flecha">▼ sí</span>
+              <div class="caja bien">Fase 2: problema original</div>
+            </div>
+            <div>
+              <span class="flecha">▼ no</span>
+              <div class="caja mal">Infactible</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- dualidad -->
+  <section id="dualidad">
+    <h2>Dualidad y sensibilidad</h2>
+    <div class="dos fig">
+      <div>
+        <p>Todo problema tiene un "gemelo", el dual.</p>
+        <div class="formula">Primal: max c<sup>T</sup>x, &nbsp; Ax ≤ b</div>
+        <div class="formula">Dual: min b<sup>T</sup>y, &nbsp; A<sup>T</sup>y ≥ c</div>
+
+        <h3>Teoremas</h3>
+        <p><strong>El débil</strong> dice que el dual siempre da una cota para el primal.</p>
+        <p><strong>El fuerte</strong> dice que, si hay solución óptima, ambos valores óptimos son iguales.</p>
+        <p><strong>La holgura complementaria</strong> dice que, si a un recurso le sobra, su variable dual vale cero.</p>
+      </div>
+      <div class="fig-caja">
+        <svg id="grafico-dual" role="img" aria-label="Valores del primal que suben y cotas del dual que bajan hasta encontrarse en 36"></svg>
+        <p class="pie-fig">En el ejemplo, el primal sube (0, 30, 36) y las cotas del dual bajan (42, 39, 36) hasta encontrarse. Además, al primer recurso le sobraba y su variable dual vale 0, justo como dice la holgura complementaria: y = (0, 1.5, 1).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- aspectos computacionales y aplicaciones -->
+  <section id="aplicaciones">
+    <h2>Aspectos computacionales y aplicaciones</h2>
+
+    <div class="dos fig sep">
+      <div>
+        <p>El algoritmo se resume en un pseudocódigo:</p>
+<pre>SIMPLEX(A, b, c, tol)
+Entrada: A (m×n), b, c en forma estándar
+Salida:  solución óptima x*, valor z*, o un mensaje de estado
+
+1. Si hay restricciones ≥ o =, aplicar la fase I para obtener
+   una base inicial B. Si resulta infactible → RETORNAR "INFACTIBLE".
+
+2. REPETIR:
+   a. Calcular x_B = B⁻¹·b  y los costos reducidos  z_j − c_j
+      de las no básicas.
+   b. Si todos los (z_j − c_j) ≥ −tol → RETORNAR x*, z* = c_Bᵀ·x_B
+      (óptimo).
+   c. Elegir la variable que entra, q: la de menor z_j − c_j
+      (con regla de Bland: la de menor índice con z_j − c_j &lt; −tol).
+   d. Calcular d = B⁻¹·a_q.
+      Si todos los d_i ≤ tol → RETORNAR "NO ACOTADO".
+   e. Calcular la razón mínima θ* = min{ (B⁻¹b)_i / d_i : d_i &gt; tol }
+      y la fila r donde ocurre: esa variable sale.
+   f. Pivotear sobre (r, q) y actualizar la base B.</pre>
+        <p>En vez de comparar con cero exacto, se usa una tolerancia, un número muy pequeño.</p>
+      </div>
+
+      <div>
+        <p>Cada iteración cuesta del orden de <strong>O(mn)</strong>.</p>
+        <div class="fig-caja">
+          <svg id="grafico-costo" viewBox="0 0 520 250" role="img" aria-label="Rectángulo cuya área representa m por n operaciones"></svg>
+          <div class="controles">
+            <label for="ctl-m">m (restricciones)</label>
+            <input id="ctl-m" type="range" min="2" max="100" value="30">
+            <span id="val-m" style="min-width:3ch"></span>
+          </div>
+          <div class="controles">
+            <label for="ctl-n">n (variables)</label>
+            <input id="ctl-n" type="range" min="2" max="200" value="80">
+            <span id="val-n" style="min-width:3ch"></span>
+          </div>
+          <p class="lectura" id="lectura-costo"></p>
+        </div>
+        <p style="margin-top:16px"><strong>Problema numérico:</strong> la computadora redondea, y un pivote muy pequeño puede amplificar los errores. Se resuelve con tolerancias, escalado de datos y perturbación.</p>
+      </div>
+    </div>
+
+    <h3 class="primero">Aplicación en ciencia de datos: la regresión LAD</h3>
+    <div class="dos fig">
+      <div>
+        <p>En vez de minimizar el error al cuadrado, minimizamos el error en valor absoluto, que es menos sensible a datos atípicos:</p>
+        <div class="formula">min Σ (u<sub>i</sub> + v<sub>i</sub>) &nbsp;&nbsp; <span>s.a.</span> &nbsp; x<sub>i</sub><sup>T</sup>β + u<sub>i</sub> − v<sub>i</sub> = y<sub>i</sub>, &nbsp; u<sub>i</sub>, v<sub>i</sub> ≥ 0</div>
+        <p>Cada error se separa en una parte positiva y una negativa, y el problema se vuelve lineal.</p>
+      </div>
+      <div class="fig-caja">
+        <svg id="grafico-lad" role="img" aria-label="Datos con dos rectas: mínimos cuadrados y LAD"></svg>
+        <div class="controles">
+          <button id="btn-atipico">Agregar dato atípico</button>
+        </div>
+        <p class="lectura" id="lectura-lad"></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>El simplex recorre esquinas de una región, mejorando en cada paso, hasta encontrar el óptimo. Su fuerza está en combinar una idea geométrica simple con álgebra de matrices.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
