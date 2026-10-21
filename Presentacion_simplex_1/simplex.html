@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Método simplex</title>
+<title>Método Simplex</title>
 <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
 
 <nav>
   <div class="barra">
-    <span class="marca">Método simplex</span>
+    <span class="marca">Método Simplex</span>
     <ul>
       <li><a href="#introduccion">Introducción</a></li>
       <li><a href="#programacion-lineal">Programación lineal</a></li>
@@ -34,7 +34,7 @@
         <p>El simplex fue creado por George Dantzig en 1947.</p>
         <p>En esa época "programación" no tenía que ver con computadoras, sino con planificar, con hacer calendarios y planes.</p>
         <p>El nombre "programación lineal" lo propuso Koopmans en 1948.</p>
-        <p><strong>Objetivo:</strong> entender el modelo, la idea geométrica, el algoritmo paso a paso, los casos especiales, y cómo se usa en computación y en ciencia de datos.</p>
+        <p><strong>Objetivo:</strong> Entender el modelo, la idea geométrica, el algoritmo paso a paso, los casos especiales, y cómo se usa en computación y en ciencia de datos.</p>
       </div>
       <figure class="foto">
         <div class="marco"><img src="dantzig.jpg" alt="George Dantzig" onerror="this.remove()"></div>
@@ -48,7 +48,7 @@
     <h2>Programación lineal</h2>
     <div class="dos fig">
       <div>
-        <h3 class="primero">Un problema de programación lineal tiene</h3>
+        <h3 class="primero">Un problema de programación lineal tiene: </h3>
         <ul>
           <li>las variables de decisión   </li>
           <li>la función objetivo</li>
@@ -59,7 +59,7 @@
         <h3>Forma estándar de un problema de programación lineal</h3>
         <div class="formula">max z = c<sup>T</sup>x &nbsp;&nbsp; <span>s.a.</span> &nbsp;&nbsp; Ax ≤ b, &nbsp; x ≥ 0</div>
         <p>Donde: <strong>c</strong> es la ganancia de cada variable, <strong>A</strong> es cuánto consume cada una de los recursos, y <strong>b</strong> es cuánto tenemos disponible de cada recurso.</p>
-
+        <p>Asumimos cuatro cosas: proporcionalidad, aditividad, divisibilidad y certeza.</p>
         <h3>El simplex trabaja con la forma estándar</h3>
         <div class="formula">Ax = b, &nbsp; x ≥ 0</div>
         <p>Variables extra: variable de holgura, exceso y las artificiales.</p>
@@ -207,35 +207,33 @@
   </section>
 
   <!-- soluciones iniciales -->
+
   <section id="inicial">
     <h2>Soluciones iniciales: Dos fases y M grande</h2>
+
     <div class="dos fig sep">
-      <div>
-        <h3>Dos fases</h3>
-        <div class="dos igual" style="gap:28px">
-          <div>
-            <p><strong>Fase 1.</strong> Minimizamos la suma de las artificiales:</p>
-            <div class="formula">min w = Σ a<sub>i</sub></div>
-            <p>Si llega a cero, encontramos un punto de partida válido.</p>
-          </div>
-          <div>
-            <p><strong>Fase 2.</strong> Resolvemos el problema original.</p>
-            <p>Si la fase 1 no llega a cero, el problema es infactible.</p>
-          </div>
-        </div>
-        <h3 class="primero">M grande</h3>
-        <p>Se les pone un castigo enorme en la función objetivo.</p>
-        <div class="formula">max z = c<sup>T</sup>x − M Σ a<sub>i</sub></div>
-        <p>Con M gigante, al método no le conviene dejarlas, y las saca.</p>
 
-        
-      </div>
-
+      <!-- columna izquierda: dos fases -->
       <div class="fig-caja">
         <div class="flujo">
+          <h3>Dos fases</h3>
+
+          <div class="dos igual" style="gap:28px">
+            <div>
+              <p><strong>Fase 1.</strong> Minimizamos la suma de las artificiales:</p>
+              <div class="formula">min w = Σ a<sub>i</sub></div>
+              <p>Si llega a cero, encontramos un punto de partida válido.</p>
+            </div>
+            <div>
+              <p><strong>Fase 2.</strong> Resolvemos el problema original.</p>
+              <p>Si la fase 1 no llega a cero, el problema es infactible.</p>
+            </div>
+          </div>
+
           <div class="caja fase">Fase 1: min w = Σ aᵢ</div>
           <span class="flecha">▼</span>
           <div class="caja decision">¿w llega a cero?</div>
+
           <div class="ramas">
             <div>
               <span class="flecha">▼ sí</span>
@@ -248,6 +246,47 @@
           </div>
         </div>
       </div>
+
+      <!-- columna derecha: M grande -->
+      <div class="fig-caja">
+        <div class="flujo">
+          <h3 class="primero">M grande</h3>
+          <p>Se les pone un castigo enorme en la función objetivo.</p>
+          <div class="formula">max z = c<sup>T</sup>x − M Σ a<sub>i</sub></div>
+          <p>Con M gigante, al método no le conviene dejarlas, y las saca.</p>
+
+          <h3>¿Cuándo aparece cada variable?</h3>
+          <div class="tabla-caja">
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th>Restricción</th>
+                  <th>Se agrega</th>
+                  <th>Queda</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>≤</th>
+                  <td>holgura s</td>
+                  <td>x + s = b</td>
+                </tr>
+                <tr>
+                  <th>≥</th>
+                  <td>exceso e y artificial a</td>
+                  <td>x − e + a = b</td>
+                </tr>
+                <tr>
+                  <th>=</th>
+                  <td>artificial a</td>
+                  <td>x + a = b</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
