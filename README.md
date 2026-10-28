@@ -1,3 +1,7 @@
+**Integrantes:**
+* Vidal Choque Copa
+* Gutierrez Bautista Patricia Maylen
+
 ## Presentacion
 
 | Título | Ver Página |
